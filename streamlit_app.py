@@ -34,7 +34,7 @@ iframe {border:0; display:block;}
 )
 
 
-@st.cache_data
+# Sengaja tanpa @st.cache_data: cache tidak ikut berubah saat index.html/app.js/style.css diedit
 def build_html() -> str:
     # 1) Kumpulkan semua respons API Flask (hasilnya sama dengan yang dipakai app.js)
     client = flask_app.test_client()
