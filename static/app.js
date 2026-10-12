@@ -118,7 +118,7 @@ async function loadInsights() {
     type: "bar",
     data: {labels: c.labels, datasets: [{data: c.values, backgroundColor: c.values.map(v => v >= 0 ? CYAN : PINK), borderRadius: 6, borderSkipped: false}]},
     options: {indexAxis: "y", responsive: true, maintainAspectRatio: false, plugins: {legend: {display: false}},
-      scales: {x: {min: -1, max: 1, title: {display: true, text: "Korelasi (r) dengan Exam Score"}}, y: {grid: {display: false}}}}
+      scales: {x: {min: -1, max: 1, title: {display: true, text: "Korelasi (r) dengan Exam Score"}}, y: {grid: {display: false}, afterFit: ax => { ax.width = Math.max(ax.width, 140); }}}}
   });
   const sg = await fetchJSON("/api/segments");
   const max = Math.max(...sg.map(s => s.count));
@@ -139,4 +139,5 @@ async function loadMatrix() {
     "</tbody>";
 }
 
-init();
+// tunggu font Sora siap supaya lebar label sumbu terukur benar
+(document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(init);
