@@ -100,3 +100,9 @@ footer{padding:34px 0 40px;text-align:center;color:var(--muted);font-size:13px}
 .legend i{width:26px;height:10px;border-radius:5px;display:inline-block}
 .legend .neg{background:linear-gradient(90deg,var(--pink),rgba(255,79,163,.15))}
 .legend .pos{background:linear-gradient(90deg,rgba(56,225,255,.15),var(--cyan))}
+
+/* tombol tukar X dan Y */
+.selects{align-items:center}
+#swap{font:inherit;font-size:16px;line-height:1;padding:9px 12px;border:1px solid var(--edge);border-radius:10px;background:rgba(255,255,255,.07);color:var(--ink);cursor:pointer}
+#swap:hover{border-color:rgba(56,225,255,.5);color:var(--cyan)}
+#swap:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
