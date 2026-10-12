@@ -79,7 +79,6 @@ st.markdown("""
         width: 120px;
         height: 120px;
         border-radius: 50%;
-        background: conic-gradient(#a259ff 0%, #4bc0c0 73.8%, #16133a 73.8% 100%);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -128,25 +127,36 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# 3. MEMBACA DATASET
+# 3. MEMBACA DATASET & MEMBERSIHKAN KOLOM (PENCEGAH KEYERROR)
 @st.cache_data
 def load_data():
-    df = pd.read_csv("dashboard/latihan1.csv")
+    try:
+        # Mencoba membaca dengan path folder lokal / github
+        df = pd.read_csv("dashboard/latihan1.csv")
+    except:
+        # Fallback jika posisi file sejajar dengan script
+        df = pd.read_csv("latihan1.csv")
+        
+    # Otomatis menghapus spasi liar di awal/akhir nama kolom agar tidak memicu KeyError
+    df.columns = df.columns.str.strip()
     return df
 
-try:
-    df = load_data()
-except:
-    df = pd.read_csv("latihan1.csv") # Fallback jika path folder berbeda
+# Memuat data ke dalam aplikasi
+df = load_data()
 
-# 4. PROSES PERHITUNGAN STATISTIK (SAMA SEPERTI DI APP.PY FLASK)
+# 4. PROSES PERHITUNGAN STATISTIK UTAMA
 total_mahasiswa = len(df)
 total_kolom = len(df.columns)
-rata_jam_belajar = round(df['Study Hours'].mean(), 2)
-rata_nilai = round(df['Exam Score'].mean(), 2)
-nilai_di_bawah_60 = len(df[df['Exam Score'] < 60])
 
-# 5. LAYOUT HULU: JUDUL UTAMA & RADIAL GAUGE DI KANAN
+# Memastikan kolom 'Study Hours' dan 'Exam Score' aman dibaca
+nama_kolom_belajar = 'Study Hours' if 'Study Hours' in df.columns else df.columns[0]
+nama_kolom_nilai = 'Exam Score' if 'Exam Score' in df.columns else df.columns[-1]
+
+rata_jam_belajar = round(df[nama_kolom_belajar].mean(), 2)
+rata_nilai = round(df[nama_kolom_nilai].mean(), 2)
+nilai_di_bawah_60 = len(df[df[nama_kolom_nilai] < 60])
+
+# 5. LAYOUT HULU: JUDUL UTAMA & DIAGRAM BULAT DI KANAN
 col_header_left, col_header_right = st.columns([3, 1])
 
 with col_header_left:
@@ -154,7 +164,7 @@ with col_header_left:
     st.markdown("<p style='color:#94a3b8; font-size:16px;'>Sumber data: latihan1.csv. Kebiasaan belajar, tidur, layar, dan nilai ujian.</p>", unsafe_allow_html=True)
 
 with col_header_right:
-    # Membuat efek diagram lingkaran mirip dengan versi Flask Anda
+    # Render radial gauge estetik dengan nilai persentase rata-rata nilai ujian
     st.markdown(f"""
         <div class="gauge-card">
             <div class="radial-gauge" style="background: conic-gradient(#a259ff 0%, #ec4899 {rata_nilai}%, #16133a {rata_nilai}% 100%);">
@@ -166,7 +176,7 @@ with col_header_right:
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# 6. LAYOUT METRIK UTAMA (KARTU KOTAK)
+# 6. LAYOUT METRIK UTAMA (KARTU KOTAK ATAS)
 col1, col2, col3, col4 = st.columns(4)
 with col1:
     st.metric(label="Total mahasiswa", value=f"{total_mahasiswa}")
@@ -179,34 +189,37 @@ with col4:
 
 st.markdown("<br><hr style='border-color: rgba(255,255,255,0.05);'><br>", unsafe_allow_html=True)
 
-# 7. BAGIAN JELAJAHI VARIABEL & GRAFIK
+# 7. BAGIAN JELAJAHI VARIABEL & GRAFIK (LAYOUT TENGAH)
 col_tengah_kiri, col_tengah_kanan = st.columns([2.5, 1.5])
 
 with col_tengah_kiri:
     st.markdown("<h3 style='font-weight:600; margin-top:0;'>Jelajahi satu variabel</h3>", unsafe_allow_html=True)
     
-    # Pilih Variabel Numerik untuk Grafik
+    # Memilih kolom bertipe numerik saja untuk pilihan drop-down
     fitur_numerik = df.select_dtypes(include=[np.number]).columns.tolist()
-    pilihan_variabel = st.selectbox("Pilih Variabel untuk Visualisasi:", fitur_numerik, index=fitur_numerik.index('Study Hours') if 'Study Hours' in fitur_numerik else 0)
+    
+    # Menentukan default drop-down ke 'Study Hours' jika tersedia
+    default_index = fitur_numerik.index('Study Hours') if 'Study Hours' in fitur_numerik else 0
+    pilihan_variabel = st.selectbox("Pilih Variabel untuk Visualisasi:", fitur_numerik, index=default_index)
 
-    # Menghitung data distribusi frekuensi untuk chart
+    # Menghitung data distribusi frekuensi untuk chart histogram kustom
     counts, bins = np.histogram(df[pilihan_variabel], bins=10)
     df_bin = pd.DataFrame({
         'Interval': [f"{round(bins[i],1)}-{round(bins[i+1],1)}" for i in range(len(counts))],
         'Frekuensi': counts
     })
 
-    # Membuat Grafik Batang dengan Warna Gradasi Cyan/Blue via Plotly Express
+    # Membuat Grafik Batang Interaktif dengan Warna Gradasi Cyan ke Ungu
     fig = px.bar(
         df_bin, 
         x='Interval', 
         y='Frekuensi',
         title=f"Distribusi {pilihan_variabel}",
         color='Frekuensi',
-        color_continuous_scale=['#38bdf8', '#a259ff'] # Warna gradasi estetik
+        color_continuous_scale=['#38bdf8', '#a259ff']
     )
     
-    # Kustomisasi Plotly agar menyatu dengan Tema Gelap
+    # Mengatur background chart menjadi transparan agar menyatu dengan CSS Aplikasi
     fig.update_layout(
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
@@ -223,13 +236,16 @@ with col_tengah_kiri:
 with col_tengah_kanan:
     st.markdown("<br><br>", unsafe_allow_html=True)
     
-    # 8. MENGHITUNG STATISTIK VARIABEL YANG DIPILIH
+    # 8. MENGHITUNG STATISTIK RINCI DARI VARIABEL PILIHAN
     data_kolom = df[pilihan_variabel]
     
     mean_val = round(data_kolom.mean(), 2)
     median_val = round(data_kolom.median(), 2)
+    
+    # Mengamankan perhitungan modus dari fungsi scipy
     mode_res = stats.mode(data_kolom, keepdims=True)
     mode_val = round(mode_res.mode[0], 2) if len(mode_res.mode) > 0 else "N/A"
+    
     std_val = round(data_kolom.std(), 2)
     var_val = round(data_kolom.var(), 2)
     range_val = round(data_kolom.max() - data_kolom.min(), 2)
@@ -237,7 +253,7 @@ with col_tengah_kanan:
     q3_val = round(data_kolom.quantile(0.75), 2)
     iqr_val = round(q3_val - q1_val, 2)
 
-    # Menampilkan Detail Statistik Samping Berbentuk Grid Kotak Gelap Kecil
+    # Menampilkan 9 Parameter Statistik Pendukung berbentuk Grid 3x3
     c_stat1, c_stat2, c_stat3 = st.columns(3)
     with c_stat1:
         st.metric(label="Mean", value=f"{mean_val}")
