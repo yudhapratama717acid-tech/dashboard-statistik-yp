@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Statistik Deskriptif Mahasiswa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Sora:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <div>
+      <h1>Statistik Deskriptif<br>Mahasiswa</h1>
+      <p>Sumber data: latihan1.csv. Kebiasaan belajar, tidur, layar, dan nilai ujian.</p>
+    </div>
+    <div class="gauge" aria-label="Rata-rata nilai ujian">
+      <svg viewBox="0 0 180 180">
+        <defs><linearGradient id="gg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#38e1ff"/><stop offset=".55" stop-color="#8b5cf6"/><stop offset="1" stop-color="#ff4fa3"/>
+        </linearGradient></defs>
+        <circle class="track" cx="90" cy="90" r="70"/>
+        <circle class="ring" id="ring" cx="90" cy="90" r="70" stroke="url(#gg)"/>
+      </svg>
+      <div class="gauge-text"><b class="mono" id="g-val">0</b><span>Rata-rata nilai ujian</span></div>
+    </div>
+  </header>
+
+  <section class="kpis">
+    <div class="kpi"><span>Total mahasiswa</span><b class="mono" id="k-total">0</b></div>
+    <div class="kpi"><span>Kolom data</span><b class="mono" id="k-cols">0</b></div>
+    <div class="kpi"><span>Rata-rata jam belajar</span><b class="mono" id="k-study">0</b></div>
+    <div class="kpi risk"><span>Nilai di bawah 60</span><b class="mono" id="k-risk">0</b></div>
+  </section>
+
+  <section class="card">
+    <div class="card-head">
+      <h2>Jelajahi satu variabel</h2>
+      <select id="var-select" aria-label="Pilih variabel"></select>
+    </div>
+    <div class="explore">
+      <div>
+        <div class="chart-box"><canvas id="hist"></canvas></div>
+        <div class="box"><div class="line"></div><div class="iqr" id="b-iqr"></div><div class="med" id="b-med"></div></div>
+        <div class="box-labels"><span id="l-min"></span><span id="l-mid"></span><span id="l-max"></span></div>
+      </div>
+      <div class="tiles" id="tiles"></div>
+    </div>
+  </section>
+
+  <div class="row2">
+    <section class="card">
+      <div class="card-head"><h2>Komposisi gender dan rata-rata nilai</h2></div>
+      <div class="gender">
+        <div class="chart-box"><canvas id="donut"></canvas></div>
+        <div class="chart-box"><canvas id="gbar"></canvas></div>
+      </div>
+    </section>
+    <section class="card">
+      <div class="card-head">
+        <h2>Hubungan dua variabel</h2>
+        <div class="selects">
+          <select id="x-select" aria-label="Variabel X"></select>
+          <select id="y-select" aria-label="Variabel Y"></select>
+        </div>
+      </div>
+      <div class="chart-box"><canvas id="scatter"></canvas></div>
+      <div class="corr" id="corr"></div>
+    </section>
+  </div>
+
+  <div class="row2 even">
+    <section class="card">
+      <div class="card-head"><h2>Faktor yang paling berkaitan dengan nilai</h2></div>
+      <div class="chart-box"><canvas id="corrbar"></canvas></div>
+      <p class="note">Korelasi menunjukkan keterkaitan, bukan sebab-akibat.</p>
+    </section>
+    <section class="card">
+      <div class="card-head"><h2>Sebaran mahasiswa menurut nilai</h2></div>
+      <div id="segments"></div>
+      <p class="note">Merah muda: nilai di bawah 60, perlu perhatian.</p>
+    </section>
+  </div>
+  <section class="card">
+    <div class="card-head"><h2>Matriks korelasi antar variabel</h2>
+      <div class="legend"><i class="neg"></i>negatif <i class="pos"></i>positif</div></div>
+    <div class="matrix-wrap"><table class="matrix" id="matrix"></table></div>
+    <p class="note">Semakin pekat warnanya, semakin kuat hubungannya (mendekati 1 atau -1).</p>
+  </section>
+  <footer>Dibuat dengan Python, Flask, dan pandas.</footer>
+</div>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
