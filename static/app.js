@@ -48,6 +48,12 @@ async function init() {
   $("y-select").value = "Exam_Score";
   $("var-select").onchange = loadVariable;
   $("x-select").onchange = $("y-select").onchange = loadScatter;
+  $("swap").onclick = () => {
+    const t = $("x-select").value;
+    $("x-select").value = $("y-select").value;
+    $("y-select").value = t;
+    loadScatter();
+  };
 
   loadVariable(); loadGender(); loadScatter(); loadInsights(); loadMatrix();
 }
